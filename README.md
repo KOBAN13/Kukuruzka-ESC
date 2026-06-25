@@ -68,7 +68,7 @@ package main
 import (
 	"fmt"
 
-	ecs "Kukuruzka-ESC/esc_core"
+	ecs "github.com/KOBAN13/Kukuruzka-ESC/esc_core"
 )
 
 type Position struct {
