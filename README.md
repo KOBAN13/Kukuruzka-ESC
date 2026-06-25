@@ -1,6 +1,6 @@
-# Kukuruzka-ESC
+# Kukuruzka-ECS
 
-`Kukuruzka-ESC` - экспериментальное ECS-ядро на Go.
+`Kukuruzka-ECS` - экспериментальное ECS-ядро на Go.
 
 Проект реализует базовые сущности Entity Component System: мир, сущности, компоненты, архетипы, запросы, системы, буфер команд и ресурсы. Основной код библиотеки находится в пакете [`ecs`](./ecs).
 
@@ -28,19 +28,19 @@
 Добавьте пакет в другой Go-проект:
 
 ```bash
-go get github.com/KOBAN13/Kukuruzka-ESC/ecs
+go get github.com/KOBAN13/Kukuruzka-ECS/ecs
 ```
 
 Импортируйте пакет в коде:
 
 ```go
-import ecs "github.com/KOBAN13/Kukuruzka-ESC/ecs"
+import ecs "github.com/KOBAN13/Kukuruzka-ECS/ecs"
 ```
 
 Для фиксированной версии используйте тег:
 
 ```bash
-go get github.com/KOBAN13/Kukuruzka-ESC/ecs@v0.1.0
+go get github.com/KOBAN13/Kukuruzka-ECS/ecs@v0.1.0
 ```
 
 ## Структура проекта
@@ -88,7 +88,7 @@ package main
 import (
 	"fmt"
 
-	ecs "github.com/KOBAN13/Kukuruzka-ESC/ecs"
+	ecs "github.com/KOBAN13/Kukuruzka-ECS/ecs"
 )
 
 type Position struct {
