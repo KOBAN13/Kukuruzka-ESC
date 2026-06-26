@@ -2,85 +2,74 @@
 
 `Kukuruzka-ECS` - экспериментальное ECS-ядро на Go.
 
-Проект реализует базовые сущности Entity Component System: мир, сущности, компоненты, архетипы, запросы, системы, буфер команд и ресурсы. Основной код библиотеки находится в пакете [`ecs`](./ecs).
+Проект реализует базовые части Entity Component System: мир, сущности,
+компоненты, архетипное хранение, запросы, системы, буфер команд и ресурсы.
+Основной код находится в пакете [`ecs`](./ecs).
 
-> Статус: проект находится в активной разработке. Публичный API уже намечен, но тестовое покрытие и демонстрационный пример пока не оформлены. Примеры ниже показывают предполагаемый стиль использования текущих типов.
+> Статус: активная разработка. API уже намечен, но проект пока не имеет
+> тестового покрытия, релизных тегов и полноценного демонстрационного примера.
+> Некоторые экспортированные части остаются черновыми и могут требовать правок
+> перед использованием в реальном приложении. [`main.go`](./main.go) сейчас
+> является стартовой IDE-заглушкой, а не примером использования ECS.
 
 ## Возможности
 
-- хранение сущностей через `Entity` с индексом и поколением;
+- сущности `Entity` с индексом и поколением;
 - регистрация компонентов по Go-типам;
-- архетипное хранение компонентов;
-- создание, удаление и изменение сущностей через `Spawn`, `Despawn`, `Add`, `Remove`, `Set`;
-- чтение компонентов через `Get`, `Has` и итераторы запросов;
-- deferred-изменения через `CommandBuffer`;
-- системный раннер со стадиями выполнения;
-- проверка конфликтов доступа систем к компонентам;
-- типизированное хранилище ресурсов;
+- хранение компонентов по архетипам;
+- операции `Spawn`, `Despawn`, `Add`, `Remove`, `Has`, `Get`, `Set`;
+- отложенные изменения мира через `CommandBuffer`;
+- запросы через `Query`, `Iterator`, `Read` и `Write`;
+- запуск систем по стадиям через `Runner`;
+- декларация доступа систем к компонентам через `AccessSet`;
+- контейнер ресурсов `Resources`;
 - отладочные отчеты по архетипам, запросам и доступам.
 
 ## Требования
 
 - Go `1.26` или новее, согласно [`go.mod`](./go.mod).
 
-## Installation
+## Установка
 
-Добавьте пакет в другой Go-проект:
+Пакет можно подключить из Go-проекта:
 
 ```bash
-go get github.com/KOBAN13/Kukuruzka-ECS/ecs
+go get github.com/KOBAN13/Kukuruzka-ECS
 ```
 
-Импортируйте пакет в коде:
+Импорт пакета:
 
 ```go
 import ecs "github.com/KOBAN13/Kukuruzka-ECS/ecs"
 ```
 
-Для фиксированной версии используйте тег:
-
-```bash
-go get github.com/KOBAN13/Kukuruzka-ECS/ecs@v0.1.0
-```
-
-## Структура проекта
+## Структура
 
 ```text
 .
-├── ecs/               # ECS-ядро
-├── main.go            # текущая стартовая заглушка
-├── go.mod             # Go-модуль
-├── LICENSE            # MIT License
+├── ecs/        # ECS-ядро
+├── main.go     # текущая стартовая заглушка
+├── go.mod      # Go-модуль
+├── LICENSE     # MIT License
 └── README.md
 ```
 
 Ключевые файлы пакета `ecs`:
 
-- `world.go` - создание мира и операции над сущностями;
-- `component.go` - компоненты, registry и ошибки;
-- `query.go`, `iterator.go` - описание и выполнение запросов;
-- `command.go`, `*_command_builder.go` - буфер команд;
-- `runner.go`, `system.go` - запуск систем по стадиям;
-- `resources.go` - глобальные ресурсы;
-- `access.go` - модель доступа и поиск конфликтов;
-- `bundle.go` - группировка компонентов;
-- `debug.go` - структуры отладочных отчетов.
+- [`world.go`](./ecs/world.go) - мир и основные операции над сущностями;
+- [`entity.go`](./ecs/entity.go) - тип `Entity`;
+- [`component.go`](./ecs/component.go) - компоненты, registry и ошибки;
+- [`arhetype.go`](./ecs/arhetype.go), [`column.go`](./ecs/column.go) - архетипы и колонки компонентов;
+- [`query.go`](./ecs/query.go), [`iterator.go`](./ecs/iterator.go) - запросы и итерация;
+- [`command.go`](./ecs/command.go), [`*_command_builder.go`](./ecs) - буфер команд;
+- [`runner.go`](./ecs/runner.go), [`system.go`](./ecs/system.go) - системы и стадии выполнения;
+- [`access.go`](./ecs/access.go) - модель доступа и конфликты;
+- [`resources.go`](./ecs/resources.go) - глобальные ресурсы;
+- [`debug.go`](./ecs/debug.go) - структуры отладочных отчетов.
 
 ## Быстрый старт
 
-Установите зависимости и проверьте сборку:
-
-```bash
-go test ./...
-```
-
-Запуск текущей стартовой программы:
-
-```bash
-go run .
-```
-
-## Минимальный пример API
+Минимальный пример создания сущности:
 
 ```go
 package main
@@ -117,13 +106,24 @@ func main() {
 }
 ```
 
-## Основные сущности
+Проверка проекта:
+
+```bash
+go test ./...
+```
+
+Запуск текущей стартовой программы:
+
+```bash
+go run .
+```
+
+## Основной API
 
 ### World
 
-`World` хранит сущности, архетипы, registry компонентов и текущую фазу мутаций.
-
-Создание мира:
+`World` хранит сущности, архетипы, registry компонентов и текущую фазу
+мутаций.
 
 ```go
 world := ecs.NewWorld()
@@ -132,7 +132,8 @@ worldWithCapacity := ecs.NewWorld(ecs.WithEntityCapacity(1024))
 
 ### Components
 
-Компонентом считается Go-структура. Пустые структуры могут использоваться как tag-компоненты.
+Компонентом должен быть Go-тип со `struct`-kind. Пустые структуры можно
+использовать как tag-компоненты.
 
 ```go
 type Player struct{}
@@ -140,41 +141,37 @@ type Player struct{}
 type Health struct {
 	Value int
 }
-```
 
-Токен компонента:
-
-```go
-token := ecs.Component[Health]()
+healthToken := ecs.Component[Health]()
 ```
 
 ### Entity Operations
 
-Основные операции над сущностями:
-
-- `Spawn(world, components...)` - создать сущность с набором компонентов;
+- `Spawn(world, components...)` - создать сущность;
+- `SpawnBundle(world, bundle)` - создать сущность из bundle;
 - `Despawn(world, entity)` - удалить сущность;
 - `Add(world, entity, components...)` - добавить компоненты;
 - `Remove(world, entity, componentTokens...)` - удалить компоненты;
 - `Has[T](world, entity)` - проверить наличие компонента;
-- `Get[T](world, entity)` - прочитать компонент;
-- `Set[T](world, entity, value)` - заменить значение компонента;
-- `IsAlive(world, entity)` - проверить, что сущность ещё существует.
+- `Get[T](world, entity)` - получить копию компонента;
+- `GetWrite[T](world, entity)` - получить компонент для записи;
+- `Set[T](world, entity, value)` - заменить компонент;
+- `IsAlive(world, entity)` - проверить, что сущность жива.
 
-### Queries
+Пример изменения компонента:
 
-Запросы описывают, какие компоненты нужны для чтения или записи, и по каким компонентам сущности должны фильтроваться.
-
-`QueryBuilder` поддерживает фильтры `With` и `Without`, а также декларацию доступа через `Read` и `Write`. После `Build` запрос можно обходить через `query.Iter()`, `Iterator.Next()` и `Iterator.Entity()`.
-
-Для доступа к компонентам внутри итератора предусмотрены функции:
-
-- `Read[T](it)` - чтение компонента;
-- `Write[T](it)` - получение указателя на компонент для изменения.
+```go
+err := ecs.Set(world, entity, Position{X: 15, Y: 20})
+if err != nil {
+	panic(err)
+}
+```
 
 ### CommandBuffer
 
-`CommandBuffer` нужен для отложенных изменений мира, например во время работы систем.
+`CommandBuffer` накапливает изменения и применяет их позже. Это нужно для
+систем, потому что прямые мутации мира во время `MutationRunningSystem`
+отклоняются.
 
 ```go
 commands := &ecs.CommandBuffer{}
@@ -187,13 +184,69 @@ if err != nil {
 	panic(err)
 }
 
-err = commands.Apply(world)
+if err := commands.Apply(world); err != nil {
+	panic(err)
+}
 commands.Clear()
+```
+
+Доступные команды:
+
+- `commands.Spawn().With(component).Commit()`;
+- `commands.Add(entity).With(component).Commit()`;
+- `commands.Remove(entity).Component(ecs.Component[T]()).Commit()`;
+- `commands.Despawn(entity)`;
+- `commands.Apply(world)`;
+- `commands.Clear()`.
+
+### Queries
+
+Запрос создаётся через `NewQuery(world, name)`. Builder содержит методы:
+
+- `With(componentToken)` - сущность должна иметь компонент;
+- `Without(componentToken)` - сущность не должна иметь компонент;
+- `Read(componentToken)` - компонент читается системой;
+- `Write(componentToken)` - компонент изменяется системой;
+- `Build()` - собрать `Query`.
+
+Итератор запроса предоставляет `Next()` и `Entity()`, а доступ к компонентам
+предполагается через `Read[T](it)` и `Write[T](it)`.
+
+Целевой стиль использования:
+
+```go
+query, err := ecs.NewQuery(world, "movement").
+	With(ecs.Component[Position]()).
+	With(ecs.Component[Velocity]()).
+	Read(ecs.Component[Velocity]()).
+	Write(ecs.Component[Position]()).
+	Build()
+if err != nil {
+	panic(err)
+}
+
+for it := query.Iter(); it.Next(); {
+	entity := it.Entity()
+	_ = entity
+
+	velocity, err := ecs.Read[Velocity](it)
+	if err != nil {
+		panic(err)
+	}
+
+	position, err := ecs.Write[Position](it)
+	if err != nil {
+		panic(err)
+	}
+
+	position.X += velocity.X
+	position.Y += velocity.Y
+}
 ```
 
 ### Runner и System
 
-Система должна реализовать интерфейс `System`:
+Система должна реализовать интерфейс:
 
 ```go
 type System interface {
@@ -205,7 +258,7 @@ type System interface {
 }
 ```
 
-`Runner` выполняет системы по стадиям и применяет накопленные команды после каждой стадии:
+`Runner` выполняет системы по стадиям и применяет команды после каждой стадии:
 
 ```go
 const UpdateStage ecs.StageID = 1
@@ -215,32 +268,35 @@ runner.Add(mySystem)
 
 ctx := &ecs.Context{
 	World:     world,
-	Commands: &ecs.CommandBuffer{},
+	Commands:  &ecs.CommandBuffer{},
 	Resources: ecs.NewResources(),
 }
 
-err := runner.ValidateAccess()
-if err != nil {
+if err := runner.ValidateAccess(); err != nil {
 	panic(err)
 }
 
-err = runner.Update(ctx)
+if err := runner.Update(ctx); err != nil {
+	panic(err)
+}
 ```
 
-## Ресурсы
+### Resources
 
-Ресурсы используются для хранения глобального состояния, не привязанного к конкретной сущности.
+`Resources` предназначен для глобального состояния, не привязанного к
+конкретной сущности. Контракт хранения ресурсов в текущей реализации ещё
+нужно стабилизировать, поэтому этот API стоит считать черновым.
 
 Доступные операции:
 
-- `NewResources()` - создать контейнер ресурсов;
+- `NewResources()` - создать контейнер;
 - `PutResources[T](resources, value)` - сохранить ресурс;
 - `GetResources[T](resources)` - получить ресурс;
 - `RemoveResources[T](resources)` - удалить ресурс.
 
 ## Отладка
 
-Доступные отладочные методы:
+Отладочные методы:
 
 ```go
 world.DebugArchetypes()
@@ -248,7 +304,7 @@ runner.DebugAccess()
 runner.DebugQueries()
 ```
 
-Они помогают посмотреть текущие архетипы, доступы систем и состав запросов.
+Они возвращают текстовые отчеты по архетипам, доступам систем и запросам.
 
 ## Разработка
 
@@ -260,7 +316,8 @@ go test ./...
 go run .
 ```
 
-В текущем окружении команда `go test ./...` не была выполнена, потому что бинарник `go` недоступен.
+В текущем окружении обновления README команда `go test ./...` не запускалась:
+бинарник `go` недоступен в `PATH`.
 
 ## Лицензия
 
