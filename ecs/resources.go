@@ -26,16 +26,16 @@ func PutResource[T any](resources *Resources, value T) error {
 	return nil
 }
 
-func GetResources[T any](resources *Resources) (*T, bool, error) {
+func GetResources[T any](resources *Resources) (*T, error) {
 	var key = reflect.TypeOf((*T)(nil)).Elem()
 
 	if _, ok := resources.values[key]; !ok {
-		return nil, false, ErrResourcesNotFound
+		return nil, ErrResourcesNotFound
 	}
 
 	var value, _ = resources.values[key].(*T)
 
-	return value, true, nil
+	return value, nil
 }
 
 func RemoveResources[T any](resources *Resources) error {
