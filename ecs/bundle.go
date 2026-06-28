@@ -28,23 +28,31 @@ func (f BundleFunc) Apply(builder *BundleBuilder) error {
 	return f(builder)
 }
 
-func (b *BundleBuilder) With(component any) error {
+func (b *BundleBuilder) With(component any) *BundleBuilder {
+	if b.err != nil {
+		return b
+	}
+
 	var componentType = reflect.TypeOf(component)
 
 	if err := validateComponentType(componentType); err != nil {
 		b.err = err
-		return err
+		return b
 	}
 
 	if _, exists := b.seen[componentType]; exists {
 		b.err = fmt.Errorf("%w: %s", ErrDuplicateComponent, componentType.Name())
-		return b.err
+		return b
 	}
 
 	b.seen[componentType] = struct{}{}
 	b.components = append(b.components, component)
 
-	return nil
+	return b
+}
+
+func (b *BundleBuilder) Err() error {
+	return b.err
 }
 
 func (b *BundleBuilder) Components() ([]any, error) {
